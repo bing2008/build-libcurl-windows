@@ -1,8 +1,17 @@
 @echo off
 setlocal EnableDelayedExpansion 
 
+set VS_VERSION_OVERRIDE=VS2010
+
 set PROGFILES=%ProgramFiles%
 if not "%ProgramFiles(x86)%" == "" set PROGFILES=%ProgramFiles(x86)%
+
+IF DEFINED VS_VERSION_OVERRIDE (
+    goto %VS_VERSION_OVERRIDE%
+)
+
+
+:VS2017
 
 REM Check if Visual Studio 2017 is installed
 set MSVCDIR="%PROGFILES%\Microsoft Visual Studio\2017"
@@ -14,6 +23,9 @@ if exist %MSVCDIR% (
 	goto setup_env
   )
 )
+
+:VS2015
+
 REM Check if Visual Studio 2015 is installed
 set MSVCDIR="%PROGFILES%\Microsoft Visual Studio 14.0"
 set VCVARSALLPATH="%PROGFILES%\Microsoft Visual Studio 14.0\VC\vcvarsall.bat"
@@ -24,6 +36,9 @@ if exist %MSVCDIR% (
 	goto setup_env
   )
 )
+
+:VS2013
+
 REM Check if Visual Studio 2013 is installed
 set MSVCDIR="%PROGFILES%\Microsoft Visual Studio 12.0"
 set VCVARSALLPATH="%PROGFILES%\Microsoft Visual Studio 12.0\VC\vcvarsall.bat"
@@ -34,6 +49,8 @@ if exist %MSVCDIR% (
 	goto setup_env
   )
 )
+
+:VS2012
 
 REM Check if Visual Studio 2012 is installed
 set MSVCDIR="%PROGFILES%\Microsoft Visual Studio 11.0"
@@ -46,6 +63,8 @@ if exist %MSVCDIR% (
   )
 )
 
+:VS2010
+
 REM Check if Visual Studio 2010 is installed
 set MSVCDIR="%PROGFILES%\Microsoft Visual Studio 10.0"
 set VCVARSALLPATH="%PROGFILES%\Microsoft Visual Studio 10.0\VC\vcvarsall.bat"
@@ -56,6 +75,8 @@ if exist %MSVCDIR% (
 	goto setup_env
   )
 )
+
+:VS2008
 
 REM Check if Visual Studio 2008 is installed
 set MSVCDIR="%PROGFILES%\Microsoft Visual Studio 9.0"
@@ -68,6 +89,8 @@ if exist %MSVCDIR% (
   )
 )
 
+:VS2005
+
 REM Check if Visual Studio 2005 is installed
 set MSVCDIR="%PROGFILES%\Microsoft Visual Studio 8"
 set VCVARSALLPATH="%PROGFILES%\Microsoft Visual Studio 8\VC\vcvarsall.bat"
@@ -78,6 +101,8 @@ if exist %MSVCDIR% (
 	goto setup_env
   )
 ) 
+
+:VS6
 
 REM Check if Visual Studio 6 is installed
 set MSVCDIR="%PROGFILES%\Microsoft Visual Studio\VC98"
@@ -114,21 +139,21 @@ set XIDEL="%CD%\bin\xidel\xidel.exe"
 REM Housekeeping
 %RM% -rf tmp_*
 %RM% -rf third-party
-%RM% -rf curl.zip
-%RM% -rf build_*.txt
+REM %RM% -rf curl.zip
+REM %RM% -rf build_*.txt
 
 REM Get download url .Look under <blockquote><a type='application/zip' href='xxx'>
-echo Get download url...
-%XIDEL% https://curl.haxx.se/download.html -e "//a[@type='application/zip' and ends-with(@href, '.zip')]/@href" > tmp_url
-set /p url=<tmp_url
+REM echo Get download url...
+REM %XIDEL% https://curl.haxx.se/download.html -e "//a[@type='application/zip' and ends-with(@href, '.zip')]/@href" > tmp_url
+REM set /p url=<tmp_url
 
 REM exit on errors, else continue
 if %errorlevel% neq 0 exit /b %errorlevel%
 
 REM Download latest curl and rename to curl.zip
-echo Downloading latest curl...
+REM echo Downloading latest curl...
 set "LOCAL_CURL=%~dp0\curl.zip"
-bitsadmin.exe /transfer "curltransfer" "https://curl.haxx.se%url%" "%LOCAL_CURL%"
+REM bitsadmin.exe /transfer "curltransfer" "https://curl.haxx.se%url%" "%LOCAL_CURL%"
 
 REM Extract downloaded zip file to tmp_libcurl
 %SEVEN_ZIP% x curl.zip -y -otmp_libcurl | FIND /V "ing  " | FIND /V "Igor Pavlov"
@@ -187,10 +212,10 @@ echo "Path to vcvarsall.bat: %VCVARSALLPATH%"
 call %VCVARSALLPATH% x86
 
 echo Compiling dll-debug-x86 version...
-nmake /f Makefile.vc mode=dll VC=%VCVERSION% DEBUG=yes
+nmake /f Makefile.vc mode=dll VC=%VCVERSION% DEBUG=yes ENABLE_IDN=no
 
 echo Compiling dll-release-x86 version...
-nmake /f Makefile.vc mode=dll VC=%VCVERSION% DEBUG=no GEN_PDB=yes
+nmake /f Makefile.vc mode=dll VC=%VCVERSION% DEBUG=no GEN_PDB=yes ENABLE_IDN=no
 
 echo Compiling static-debug-x86 version...
 nmake /f Makefile.vc mode=static VC=%VCVERSION% DEBUG=yes
@@ -265,8 +290,9 @@ REM Copy include folder to third-party folder
 
 REM Cleanup temporary file/folders
 cd %ROOT_DIR%
-%RM% -rf tmp_*
+REM %RM% -rf tmp_*
 
 :end
 echo Done.
-exit /b
+REM exit /b
+pause
